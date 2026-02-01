@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Scavenger Hunt</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .question-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .question-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .answer-input.has-content {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+
+        .clear-all-container {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .clear-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .clear-button:hover {
+            background: #ee5a52;
+        }
+
+        .auto-save-notice {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .question-item {
+                padding: 15px;
+            }
+        }
+
+        /* Celebratory animation when all questions are answered */
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .complete {
+            animation: celebrate 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 Party Scavenger Hunt 🎉</h1>
+            <p class="subtitle">Find the answers and fill them in below!</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">0 of 10 questions answered</div>
+
+        <!-- Questions List -->
+        <div class="question-list" id="questionList">
+            <!-- Questions will be dynamically inserted here -->
+        </div>
+
+        <!-- Clear All Button -->
+        <div class="clear-all-container">
+            <button class="clear-button" id="clearAllBtn">Clear All Answers</button>
+            <p class="auto-save-notice">✨ Your answers are automatically saved on your device</p>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // SCAVENGER HUNT QUESTIONS
+        // ========================================
+        // Add or modify your questions here!
+        const questions = [
+            "What is the host's favorite color?",
+            "Find something that starts with the letter 'Z'",
+            "How many windows are in the main room?",
+            "What's written on the refrigerator magnet?",
+            "Name someone wearing red",
+            "What time did the party start?",
+            "Find the oldest item in the room",
+            "How many people are wearing glasses?",
+            "What's the wifi password? (Just kidding! But what's on the router?)",
+            "Take a group selfie and describe it in 5 words"
+        ];
+
+        // ========================================
+        // LOCAL STORAGE FUNCTIONS
+        // ========================================
+        
+        /**
+         * Saves an answer to localStorage
+         * Each answer is stored with a key like "scavenger_answer_0", "scavenger_answer_1", etc.
+         */
+        function saveAnswer(questionIndex, answer) {
+            const key = `scavenger_answer_${questionIndex}`;
+            localStorage.setItem(key, answer);
+            console.log(`Saved answer for question ${questionIndex}`);
+        }
+
+        /**
+         * Retrieves an answer from localStorage
+         * Returns empty string if no answer exists
+         */
+        function getAnswer(questionIndex) {
+            const key = `scavenger_answer_${questionIndex}`;
+            return localStorage.getItem(key) || '';
+        }
+
+        /**
+         * Clears all saved answers from localStorage
+         */
+        function clearAllAnswers() {
+            questions.forEach((_, index) => {
+                const key = `scavenger_answer_${index}`;
+                localStorage.removeItem(key);
+            });
+            console.log('All answers cleared');
+        }
+
+        // ========================================
+        // UI FUNCTIONS
+        // ========================================
+
+        /**
+         * Creates the HTML for all questions and inserts them into the page
+         */
+        function renderQuestions() {
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                const savedAnswer = getAnswer(index);
+                
+                questionItem.innerHTML = `
+                    <div class="question-number">Question ${index + 1}</div>
+                    <div class="question-text">${question}</div>
+                    <textarea 
+                        class="answer-input ${savedAnswer ? 'has-content' : ''}" 
+                        id="answer_${index}"
+                        placeholder="Type your answer here..."
+                        rows="2"
+                    >${savedAnswer}</textarea>
+                `;
+                
+                questionList.appendChild(questionItem);
+
+                // Add event listener for auto-saving
+                const textarea = questionItem.querySelector(`#answer_${index}`);
+                textarea.addEventListener('input', (e) => {
+                    handleAnswerInput(index, e.target.value, e.target);
+                });
+            });
+
+            updateProgress();
+        }
+
+        /**
+         * Handles when a user types in an answer
+         * - Saves to localStorage
+         * - Updates visual styling
+         * - Updates progress bar
+         */
+        function handleAnswerInput(questionIndex, answer, textareaElement) {
+            saveAnswer(questionIndex, answer);
+            
+            // Add visual feedback if there's content
+            if (answer.trim()) {
+                textareaElement.classList.add('has-content');
+            } else {
+                textareaElement.classList.remove('has-content');
+            }
+
+            updateProgress();
+        }
+
+        /**
+         * Updates the progress bar based on how many questions have answers
+         */
+        function updateProgress() {
+            let answeredCount = 0;
+            questions.forEach((_, index) => {
+                const answer = getAnswer(index);
+                if (answer.trim()) {
+                    answeredCount++;
+                }
+            });
+
+            const percentage = (answeredCount / questions.length) * 100;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${answeredCount} of ${questions.length} questions answered`;
+
+            // Celebrate if all questions are answered!
+            if (answeredCount === questions.length) {
+                progressText.textContent = `🎊 All ${questions.length} questions answered! Great job! 🎊`;
+                document.querySelector('.container').classList.add('complete');
+            }
+        }
+
+        /**
+         * Clears all answers and resets the form
+         */
+        function handleClearAll() {
+            const confirmed = confirm('Are you sure you want to clear all your answers? This cannot be undone!');
+            
+            if (confirmed) {
+                clearAllAnswers();
+                renderQuestions(); // Re-render to show empty inputs
+            }
+        }
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+
+        // Wait for the page to fully load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render all questions with saved answers
+            renderQuestions();
+
+            // Set up clear all button
+            document.getElementById('clearAllBtn').addEventListener('click', handleClearAll);
+
+            console.log('Scavenger Hunt loaded! Answers are saved locally on your device.');
+        });
+
+        // ========================================
+        // HOW LOCAL STORAGE WORKS
+        // ========================================
+        /*
+         * localStorage is a web browser feature that stores data on the user's device.
+         * 
+         * Key points:
+         * - Data persists even after closing the browser
+         * - Data is stored per domain (only this website can access it)
+         * - Each user has their own separate data on their device
+         * - No data is sent to any server
+         * - Clearing browser data will erase the stored answers
+         * 
+         * In this app:
+         * - When you type in an answer, it's immediately saved to localStorage
+         * - When you refresh the page, answers are loaded from localStorage
+         * - Each answer is stored with a unique key like "scavenger_answer_0"
+         * - The "Clear All" button removes all stored answers
+         * 
+         * Perfect for a party game where everyone uses their own phone!
+         */
+    </script>
+</body>
+</html>
